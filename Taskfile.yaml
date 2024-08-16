@@ -1,0 +1,86 @@
+version: 3
+
+env:
+  GIT_COMMIT:
+    sh: 'git rev-parse --short HEAD'
+  CONTAINER_REGISTRY: '{{ .CONTAINER_REGISTRY | default "harbor.infrastructure.cloudnative.nvdlab.net/jesse" }}'
+
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  docker-build:
+    aliases: [build]
+    desc: "Build the Docker image"
+    dir: app/
+    cmds:
+      - docker build -t cnai-llm-sizer:{{.GIT_COMMIT}} .
+
+  docker-run:
+    aliases: [run]
+    deps: [docker-build]
+    desc: "Run the Docker image"
+    cmds:
+      - docker run -p 8501:8501 cnai-llm-sizer:{{.GIT_COMMIT}}
+
+  docker-clean:
+    aliases: [clean]
+    desc: "Remove Docker image and stale processes"
+    cmds:
+      - docker ps -a --filter "ancestor=cnai-llm-sizer:{{.GIT_COMMIT}}" -q | xargs -I {} sh -c "docker stop {} -s kill && docker rmi {}" sh
+
+  docker-push:
+    aliases: [push]
+    deps: [docker-build]
+    desc: "Push the Docker image"
+    cmds:
+      - docker tag cnai-llm-sizer:{{.GIT_COMMIT}} {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:latest
+      - docker push {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:{{.GIT_COMMIT}}
+      - docker push {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:latest
+
+  k8s-deploy:
+    desc: "Deploy the Kubernetes resources"
+    cmds:
+      - kubectl get ns cnai-llm-sizer || kubectl create ns cnai-llm-sizer
+      - kubectl apply -n cnai-llm-sizer -f k8s/
+
+  k8s-update:
+    deps: [k8s-deploy] 
+    desc: "Update the Kubernetes resources"
+    cmds:
+      - kubectl set image -n cnai-llm-sizer deployment/cnai-llm-sizer-deployment cnai-llm-sizer={{.CONTAINER_REGISTRY}}/cnai-llm-sizer:{{.GIT_COMMIT}}
+
+  watch-build:
+    desc: "Watches for changes in the app or k8s directory and auto builds, pushes, and deploys"
+    watch: true
+    sources:
+      - app/**/*
+      - k8s/**/*
+    cmds:
+      - task: docker-build
+      - task: k8s-update
+
+  watch-deploy:
+    desc: "Watches Kubernetes Image and Deployment Changes"
+    interactive: true
+    cmds:
+      - watch -n 1 'echo "CURRENT_IMAGE:" && kubectl get deployment cnai-llm-sizer-deployment -n cnai-llm-sizer -o=jsonpath='{.spec.template.spec.containers[*].image}' && echo && kubectl get po,svc,ingress'
+
+  k8s-delete:
+    desc: "Delete the Kubernetes resources"
+    cmds:
+      - kubectl delete -n cnai-llm-sizer -f k8s/
+    preconditions:
+      - kubectl get ns cnai-llm-sizer
+
+  kind-create:
+    desc: "Create a Kubernetes Kind cluster"
+    cmds:
+      - kind create cluster --name cnai-llm-sizer
+      - kind get kubeconfig --name cnai-llm-sizer > ~/.kube/kind-config-cnai-llm-sizer.cfg
+  
+  kind-delete:
+    desc: "Delete the Kubernetes Kind cluster"
+    cmds:
+      - kind delete cluster --name cnai-llm-sizer

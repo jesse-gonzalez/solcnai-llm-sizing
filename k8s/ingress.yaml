@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cnai-llm-sizer-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: cnai-llm-sizer.vllm.nkp.cloudnative.nvdlab.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: cnai-llm-sizer-service
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - cnai-llm-sizer.vllm.nkp.cloudnative.nvdlab.net
+    secretName: cnai-llm-sizer-tls

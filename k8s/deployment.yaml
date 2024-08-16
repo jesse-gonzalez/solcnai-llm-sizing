@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cnai-llm-sizer-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cnai-llm-sizer
+  template:
+    metadata:
+      labels:
+        app: cnai-llm-sizer
+    spec:
+      containers:
+      - name: cnai-llm-sizer
+        image: harbor.infrastructure.cloudnative.nvdlab.net/jesse/cnai-llm-sizer:latest
+        ports:
+        - containerPort: 8501
+        livenessProbe:
+          httpGet:
+            path: /_stcore/health
+            port: 8501
+            scheme: HTTP
+          timeoutSeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /_stcore/health
+            port: 8501
+            scheme: HTTP
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 100m
+            memory: 745Mi
