@@ -6,13 +6,17 @@
 $ task
 task: [default] task --list
 task: Available tasks for this project:
-* docker-build:       Build the Docker image
-* docker-push:        Push the Docker image
-* docker-run:         Run the Docker image
+* docker-build:       Build the Docker image                       (aliases: build)
+* docker-clean:       Remove Docker image and stale processes      (aliases: clean)
+* docker-push:        Push the Docker image                        (aliases: push)
+* docker-run:         Run the Docker image                         (aliases: run)
 * k8s-delete:         Delete the Kubernetes resources
 * k8s-deploy:         Deploy the Kubernetes resources
+* k8s-update:         Update the Kubernetes resources
 * kind-create:        Create a Kubernetes Kind cluster
 * kind-delete:        Delete the Kubernetes Kind cluster
+* watch-build:        Monitors changes in app/k8s directories and AUTO builds/tags/pushes image to repository and deploys to k8s
+* watch-deploy:       Watches Container Image Version updates and overall Deployment Changes on target K8s Cluster.
 ```
 
 ## References

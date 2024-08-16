@@ -53,7 +53,7 @@ tasks:
       - kubectl set image -n cnai-llm-sizer deployment/cnai-llm-sizer-deployment cnai-llm-sizer={{.CONTAINER_REGISTRY}}/cnai-llm-sizer:{{.GIT_COMMIT}}
 
   watch-build:
-    desc: "Watches for changes in the app or k8s directory and auto builds, pushes, and deploys"
+    desc: "Monitors changes in app/k8s directories and AUTO builds/tags/pushes image to repository and deploys to k8s"
     watch: true
     sources:
       - app/**/*
@@ -64,7 +64,7 @@ tasks:
       - task: k8s-update
 
   watch-deploy:
-    desc: "Watches Kubernetes Image and Deployment Changes"
+    desc: "Watches Container Image Version updates and overall Deployment Changes on target K8s Cluster."
     interactive: true
     cmds:
       - watch -n 1 'echo "CURRENT_IMAGE:" && kubectl get deployment cnai-llm-sizer-deployment -n cnai-llm-sizer -o=jsonpath='{.spec.template.spec.containers[*].image}' && echo && kubectl get po,svc,ingress -n cnai-llm-sizer'
