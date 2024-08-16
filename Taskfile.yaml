@@ -35,6 +35,7 @@ tasks:
     deps: [docker-build]
     desc: "Push the Docker image"
     cmds:
+      - docker tag cnai-llm-sizer:{{.GIT_COMMIT}} {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:{{.GIT_COMMIT}}
       - docker tag cnai-llm-sizer:{{.GIT_COMMIT}} {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:latest
       - docker push {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:{{.GIT_COMMIT}}
       - docker push {{.CONTAINER_REGISTRY}}/cnai-llm-sizer:latest
@@ -59,13 +60,14 @@ tasks:
       - k8s/**/*
     cmds:
       - task: docker-build
+      - task: docker-push
       - task: k8s-update
 
   watch-deploy:
     desc: "Watches Kubernetes Image and Deployment Changes"
     interactive: true
     cmds:
-      - watch -n 1 'echo "CURRENT_IMAGE:" && kubectl get deployment cnai-llm-sizer-deployment -n cnai-llm-sizer -o=jsonpath='{.spec.template.spec.containers[*].image}' && echo && kubectl get po,svc,ingress'
+      - watch -n 1 'echo "CURRENT_IMAGE:" && kubectl get deployment cnai-llm-sizer-deployment -n cnai-llm-sizer -o=jsonpath='{.spec.template.spec.containers[*].image}' && echo && kubectl get po,svc,ingress -n cnai-llm-sizer'
 
   k8s-delete:
     desc: "Delete the Kubernetes resources"

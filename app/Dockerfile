@@ -1,12 +1,8 @@
-# Description: Dockerfile for the Solcnai app
-FROM python:3.8-slim
+# app/Dockerfile
 
-RUN groupadd --gid 1000 nutanix \
-    && useradd --uid 1000 --gid 1000 -ms /bin/bash nutanix
+FROM python:3.9-slim
 
-RUN pip3 install --no-cache-dir --upgrade \
-    pip \
-    virtualenv
+WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -15,17 +11,13 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-USER nutanix
-WORKDIR /home/nutanix
+COPY . .
+#COPY models/ /app/models/
 
-COPY . app
-COPY models/ /app/models/
-
-ENV VIRTUAL_ENV=/home/nutanix/venv
-RUN virtualenv ${VIRTUAL_ENV}
-RUN . ${VIRTUAL_ENV}/bin/activate && pip install -r app/requirements.txt
+RUN pip3 install -r requirements.txt
 
 EXPOSE 8501
 
-COPY run.sh /home/nutanix
-ENTRYPOINT ["./run.sh"]
+HEALTHCHECK CMD curl --fail http://localhost:8501/_stcore/health
+
+ENTRYPOINT ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]

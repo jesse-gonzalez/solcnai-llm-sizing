@@ -15,6 +15,7 @@ spec:
       containers:
       - name: cnai-llm-sizer
         image: harbor.infrastructure.cloudnative.nvdlab.net/jesse/cnai-llm-sizer:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8501
         livenessProbe:
