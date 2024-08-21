@@ -119,7 +119,6 @@ def calculate_inference_memory(
         "inference_memory": get_memory(model_weights, kv_cache, activation_memory),
     }
 
-
 @st.cache_data
 def calculate_training_memory(
     model_size,
@@ -161,3 +160,4 @@ def calculate_training_memory(
             gradients_memory,
         ),
     }
+

@@ -1,5 +1,8 @@
 version: 3
 
+set: [pipefail]
+shopt: [globstar]
+
 env:
   GIT_COMMIT:
     sh: 'git rev-parse --short HEAD'
@@ -86,3 +89,11 @@ tasks:
     desc: "Delete the Kubernetes Kind cluster"
     cmds:
       - kind delete cluster --name cnai-llm-sizer
+
+  venv-activate:
+    desc: "Create a Python Virtual Environment. VENV_DIR defaults to $HOME, override with run `task venv-activate VENV_DIR=app/`"
+    vars:
+      VENV_DIR: '$HOME'
+    cmds:
+      - python3 -m venv {{.VENV_DIR}}/.venv
+      - echo "Execute following to activate and install requirements - source {{.VENV_DIR}}/.venv/bin/activate && pip install -r app/requirements.txt"

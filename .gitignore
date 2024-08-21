@@ -1,5 +1,6 @@
 # 
 .staging
+venv
 
 # tasks checksum folder during build watches
 .task/checksum
